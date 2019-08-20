@@ -22,8 +22,7 @@ stock_id_list = []
 
 ##################
 # Give the location of the file 
-path = 'slot_kishans.xlsx'
-#path = 'ftp_slot.xlsx'
+path = 'slot_test.xlsx'
 # workbook object is created 
 wb_obj = openpyxl.load_workbook(path) 
 
@@ -169,8 +168,6 @@ def Load_queue():
 
         browse_rand_prods(req)
         
-        #carting(req)
-        #akavpau_vp1#1558771150~id=31bbbebb29daf5fe505e1b11e92b3a47
 
 def browse_rand_prods(sess):
 
@@ -185,8 +182,25 @@ def browse_rand_prods(sess):
     #while ('22:00:01' > time_curr > '23:59:59'):
         browse = random.choice(prod_list)
         print(datetime.now().strftime('%T') + " [" + mythread + "] " + "Browsing", browse)
-        atc_req = req.get(browse)
-        time.sleep(15)
+        try:
+            atc_req = req.get(browse)
+            time.sleep(15)
+        except requests.exceptions.HTTPError as errh:
+            print (datetime.now().strftime('%T') + " [" + mythread + "] " + "Http Error:",errh)
+            time.sleep(10)
+            browse_rand_prods(req)
+        except requests.exceptions.ConnectionError as errc:
+            print (datetime.now().strftime('%T') + " [" + mythread + "] " + "Error Connecting:",errc)
+            time.sleep(10)
+            browse_rand_prods(req)
+        except requests.exceptions.Timeout as errt:
+            print (datetime.now().strftime('%T') + " [" + mythread + "] " + "Timeout Error:",errt)
+            time.sleep(10)
+            browse_rand_prods(req)
+        except requests.exceptions.RequestException as err:
+            print (datetime.now().strftime('%T') + " [" + mythread + "] " + "OOps: Something Else",err)
+            time.sleep(10)
+            browse_rand_prods(req)
 
     print(datetime.now().strftime('%T') + " [" + mythread + "] " + "Past 12 am release - goin getting size id")
 
@@ -211,12 +225,29 @@ def get_stock_id():
             }
 
         while (stock_id_list == []):
-            get_url = req.get(main_prod, headers=headers, timeout=15)
-            id_url = get_url.url + 'stock/'
-            get_id = req.get(id_url, headers=headers, timeout=15)
+            try:
+                get_url = req.get(main_prod, headers=headers, timeout=15)
+                id_url = get_url.url + 'stock/'
+                get_id = req.get(id_url, headers=headers, timeout=15)
+
+            except requests.exceptions.HTTPError as errh:
+                print (datetime.now().strftime('%T') + " [" + mythread + "] " + "Http Error:",errh)
+                time.sleep(10)
+                get_stock_id()
+            except requests.exceptions.ConnectionError as errc:
+                print (datetime.now().strftime('%T') + " [" + mythread + "] " + "Error Connecting:",errc)
+                time.sleep(10)
+                get_stock_id()
+            except requests.exceptions.Timeout as errt:
+                print (datetime.now().strftime('%T') + " [" + mythread + "] " + "Timeout Error:",errt)
+                time.sleep(10)
+                get_stock_id()
+            except requests.exceptions.RequestException as err:
+                print (datetime.now().strftime('%T') + " [" + mythread + "] " + "OOps: Something Else",err)
+                time.sleep(10)
+                get_stock_id()
 
             parse_page = get_id.text
-
             queue_cookies = req.cookies.get_dict()
             #print(queue_cookies)
 
@@ -353,7 +384,6 @@ def carting(past_que):
         #print(sess_cookies)
 
             headers = {
-
                 'origin': 'https://www.footpatrol.com',
                 'accept-encoding': 'gzip, deflate, br',
                 'accept-language': 'en-US,en;q=0.9',
@@ -361,14 +391,6 @@ def carting(past_que):
                 'content-type': 'application/json',
                 'accept': '*/*',
                 'x-requested-with': 'XMLHttpRequest',
-        
-                #'origin': 'https://www.footpatrol.com',
-                #'accept-encoding': 'gzip, deflate, br',
-                #'accept-language': 'en-US,en;q=0.9',
-                #'x-requested-with': 'XMLHttpRequest',
-                #'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36',
-                #'content-type': 'application/json',
-                #'accept': '*/*',
             }
 
             data = '{"customisations":false,"cartPosition":null,"recaptchaResponse":"'+ captcha +'","cartProductNotification":null,"quantityToAdd":1}'
@@ -388,7 +410,7 @@ def carting(past_que):
                 if (email_post.status_code == 200):
                     print(datetime.now().strftime('%T') + " [" + mythread + "] " + "submitting address")
 
-                    #data = '{"useDeliveryAsBilling":true,"country":"Netherlands|nl","locale":"","firstName":"kaay","lastName":"meer","phone":"5611145001","address1":"41 Vrouwenzandstraa pkg 1","address2":"","town":"Purmerend","county":"","postcode":"1443WG","addressPredict":"","setOnCart":"deliveryAddressID"}'
+                    #data = '{"useDeliveryAsBilling":true,"country":"Netherlands|nl","locale":"","firstName":"kaay","lastName":"meer","phone":"5611145001","address1":"33 test st ","address2":"","town":"Purmerend","county":"","postcode":"1443WG","addressPredict":"","setOnCart":"deliveryAddressID"}'
                     data = '{"useDeliveryAsBilling":true,"country":"United States|us","locale":"","firstName":"' + firstName + '","lastName":"' + lastName + '","phone":"' + phone + '","address1":"' + address1 + '","address2":"' + address2 +'","town":"' + city + '","county":"' + state + '","postcode":"' + postcode + '","addressPredict":"","setOnCart":"deliveryAddressID"}'
 
                     addy_req = req.post('https://www.footpatrol.com/myaccount/addressbook/add/', data=data)
