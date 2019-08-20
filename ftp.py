@@ -9,7 +9,7 @@ from itertools import cycle
 
 
 #PRODUCT ID  
-PID = '148370'
+PID = '158880'
 
 #problems with 3ds 
 
@@ -124,6 +124,7 @@ def Load_queue():
                 print(datetime.now().strftime('%T') + " [" + mythread + "] " + "IN queue")
                 sleep = random.randint(6, 15)
                 time.sleep(sleep)
+                req.cookies.clear() #added because sesion with same proxies might have previous carts 
                 load_fp = req.get('https://www.footpatrol.com', headers=headers, timeout=35)
                 #print(load_fp.text)
                 load_fp.raise_for_status()
@@ -623,6 +624,7 @@ def carting(past_que):
                                             if ("https://www.footpatrol.com/checkout/landing/?authResult=REFUSED" in submit_3d3.url):
                                                 print(datetime.now().strftime('%T') + " [" + mythread + "] " + "Card declined or something failed with 3ds")
                                                 payment_status = True
+                                                req.cookies.clear() #after decline clear session # maybe try again ?
 
                                             else:
                                                 print(datetime.now().strftime('%T') + " [" + mythread + "] " + "Cook check email")
@@ -647,6 +649,8 @@ def carting(past_que):
                             else:
                                 print(select_card_req.text)
                                 print(datetime.now().strftime('%T') + " [" + mythread + "] " + "Out stock")
+                                req.cookies.clear() # out of stock loop fix 
+                                # maybe make a diffrent function so it tries to delete cart and try again not loose past queue 
 
                     else:
                         print(addy_req.text)
@@ -660,6 +664,8 @@ def carting(past_que):
             else:
                 print(atc_req.text)
                 print(datetime.now().strftime('%T') + " [" + mythread + "] " + "ATC error")
+                req.cookies.clear() #atc error because of 1 item per limit fix
+                # maybe make a diffrent function so it tries to delete cart and try again not loose past queue 
         else:
             print(abck_value)
             print(datetime.now().strftime('%T') + " [" + mythread + "] " + "Invalid abck // change sensor data")
