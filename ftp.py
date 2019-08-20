@@ -426,7 +426,8 @@ def carting(past_que):
                             print(datetime.now().strftime('%T') + " [" + mythread + "] " + "picking card")
 
                             data = {
-                              'paySelect': 'card'
+                              'paySelect': 'card',
+                              'isSafari': 'false'
                             }
                             select_card_req = req.post('https://www.footpatrol.com/checkout/paymentV3/', data=data)
 
